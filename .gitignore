@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Data (too large for git - see data/README.md for download links)
+data/raw/*
+data/processed/*
+data/adversarial/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/adversarial/.gitkeep
+
+# Models
+src/defender/saved_models/*
+!src/defender/saved_models/.gitkeep
+*.pkl
+*.joblib
+*.h5
+*.pt
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Results (optional - uncomment if you don't want to track generated outputs)
+# results/figures/*
+# results/metrics/*
+
+# Env / secrets
+.env
+*.env.local
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
