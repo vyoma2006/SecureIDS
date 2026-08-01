@@ -1,0 +1,158 @@
+{
+  "test_accuracy": 0.9144609489195276,
+  "classification_report": {
+    "Benign": {
+      "precision": 0.8692548677479478,
+      "recall": 0.4918878890559433,
+      "f1-score": 0.6282602464889653,
+      "support": 44563.0
+    },
+    "Bot": {
+      "precision": 0.9998602245725201,
+      "recall": 0.9997903515106339,
+      "f1-score": 0.9998252868208025,
+      "support": 42929.0
+    },
+    "DDOS attack-HOIC": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 45021.0
+    },
+    "DDoS attacks-LOIC-HTTP": {
+      "precision": 0.998359892728119,
+      "recall": 0.9996449257672932,
+      "f1-score": 0.999001996007984,
+      "support": 45061.0
+    },
+    "DoS attacks-Hulk": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 44945.0
+    },
+    "FTP-BruteForce": {
+      "precision": 0.9998276337562052,
+      "recall": 1.0,
+      "f1-score": 0.9999138094499319,
+      "support": 29003.0
+    },
+    "Infilteration": {
+      "precision": 0.47907062511524984,
+      "recall": 0.8625498007968128,
+      "f1-score": 0.616004742145821,
+      "support": 24096.0
+    },
+    "SSH-Bruteforce": {
+      "precision": 0.9999644583451806,
+      "recall": 0.9998933826142583,
+      "f1-score": 0.9999289192166898,
+      "support": 28138.0
+    },
+    "accuracy": 0.9144609489195276,
+    "macro avg": {
+      "precision": 0.9182922127831529,
+      "recall": 0.9192207937181177,
+      "f1-score": 0.9053668750162743,
+      "support": 303756.0
+    },
+    "weighted avg": {
+      "precision": 0.9392123479104025,
+      "recall": 0.9144609489195276,
+      "f1-score": 0.9148146553663963,
+      "support": 303756.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      21920,
+      5,
+      0,
+      39,
+      0,
+      0,
+      22599,
+      0
+    ],
+    [
+      9,
+      42920,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      45021,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      16,
+      0,
+      0,
+      45045,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      44945,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      29003,
+      0,
+      0
+    ],
+    [
+      3272,
+      1,
+      0,
+      35,
+      0,
+      3,
+      20784,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      1,
+      28135
+    ]
+  ],
+  "class_names": [
+    "Benign",
+    "Bot",
+    "DDOS attack-HOIC",
+    "DDoS attacks-LOIC-HTTP",
+    "DoS attacks-Hulk",
+    "FTP-BruteForce",
+    "Infilteration",
+    "SSH-Bruteforce"
+  ]
+}
