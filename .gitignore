@@ -15,12 +15,18 @@ data/adversarial/*
 !data/adversarial/.gitkeep
 
 # Models
+# Models
 src/defender/saved_models/*
-!src/defender/saved_models/.gitkeep
 *.pkl
 *.joblib
 *.h5
 *.pt
+!src/defender/saved_models/.gitkeep
+!src/defender/saved_models/baseline_model.pt
+!src/defender/saved_models/feature_columns.json
+!src/defender/saved_models/label_encoder.pkl
+!src/defender/saved_models/model_architecture.json
+!src/defender/saved_models/scaler.pkl
 
 # Notebooks checkpoints
 .ipynb_checkpoints/
