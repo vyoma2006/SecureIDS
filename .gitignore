@@ -9,10 +9,10 @@ env/
 # Data (too large for git - see data/README.md for download links)
 data/raw/*
 data/processed/*
-data/adversarial/*
+# data/adversarial/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
-!data/adversarial/.gitkeep
+# !data/adversarial/.gitkeep
 
 # Models
 src/defender/saved_models/*
