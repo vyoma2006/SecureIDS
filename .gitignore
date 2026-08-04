@@ -9,18 +9,27 @@ env/
 # Data (too large for git - see data/README.md for download links)
 data/raw/*
 data/processed/*
-# data/adversarial/*
+data/adversarial/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
-# !data/adversarial/.gitkeep
+!data/adversarial/.gitkeep
+
 
 # Models
+# Models
 src/defender/saved_models/*
-!src/defender/saved_models/.gitkeep
 *.pkl
 *.joblib
 *.h5
 *.pt
+!src/defender/saved_models/.gitkeep
+!src/defender/saved_models/baseline_model.pt
+!src/defender/saved_models/feature_columns.json
+!src/defender/saved_models/label_encoder.pkl
+!src/defender/saved_models/model_architecture.json
+!src/defender/saved_models/scaler.pkl
+!src/defender/saved_models/robust_model_all_eps.pt
+!src/defender/saved_models/robust_model_high_eps_only.pt
 
 # Notebooks checkpoints
 .ipynb_checkpoints/
