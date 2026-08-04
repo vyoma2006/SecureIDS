@@ -14,6 +14,7 @@ data/adversarial/*
 !data/processed/.gitkeep
 !data/adversarial/.gitkeep
 
+
 # Models
 # Models
 src/defender/saved_models/*
@@ -27,6 +28,8 @@ src/defender/saved_models/*
 !src/defender/saved_models/label_encoder.pkl
 !src/defender/saved_models/model_architecture.json
 !src/defender/saved_models/scaler.pkl
+!src/defender/saved_models/robust_model_all_eps.pt
+!src/defender/saved_models/robust_model_high_eps_only.pt
 
 # Notebooks checkpoints
 .ipynb_checkpoints/

@@ -1,0 +1,97 @@
+{
+  "experiment_name": "high_eps_only",
+  "train_epsilon_filter": [
+    0.1,
+    0.3
+  ],
+  "baseline": {
+    "clean_test_accuracy": 0.9144609489195276,
+    "macro_f1": 0.9053668750162743,
+    "adversarial_evasion_rate": 0.2852661916023967
+  },
+  "robust": {
+    "clean_test_accuracy": 0.9394151885065645,
+    "macro_f1": 0.9128607843652663,
+    "adversarial_evasion_rate": 0.01966970558618481,
+    "classification_report": {
+      "Benign": {
+        "precision": 0.7294183562699164,
+        "recall": 0.9348562708973812,
+        "f1-score": 0.8194576944638414,
+        "support": 44563.0
+      },
+      "Bot": {
+        "precision": 0.999673925701642,
+        "recall": 0.9998136457872301,
+        "f1-score": 0.9997437808627597,
+        "support": 42929.0
+      },
+      "DDOS attack-HOIC": {
+        "precision": 1.0,
+        "recall": 0.999977788143311,
+        "f1-score": 0.9999888939483125,
+        "support": 45021.0
+      },
+      "DDoS attacks-LOIC-HTTP": {
+        "precision": 0.9981608278490549,
+        "recall": 0.9996671179068374,
+        "f1-score": 0.9989134050338175,
+        "support": 45061.0
+      },
+      "DoS attacks-Hulk": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 44945.0
+      },
+      "FTP-BruteForce": {
+        "precision": 0.9998276337562052,
+        "recall": 1.0,
+        "f1-score": 0.9999138094499319,
+        "support": 29003.0
+      },
+      "Infilteration": {
+        "precision": 0.7518744551002615,
+        "recall": 0.35790172642762286,
+        "f1-score": 0.4849575437215318,
+        "support": 24096.0
+      },
+      "SSH-Bruteforce": {
+        "precision": 0.9999644570819264,
+        "recall": 0.9998578434856777,
+        "f1-score": 0.9999111474419349,
+        "support": 28138.0
+      },
+      "accuracy": 0.9394151885065645,
+      "macro avg": {
+        "precision": 0.9348649569698757,
+        "recall": 0.9115092990810075,
+        "f1-score": 0.9128607843652663,
+        "support": 303756.0
+      },
+      "weighted avg": {
+        "precision": 0.9402822161732005,
+        "recall": 0.9394151885065645,
+        "f1-score": 0.9324410645433734,
+        "support": 303756.0
+      }
+    }
+  },
+  "improvement": {
+    "evasion_rate_reduction": 0.2655964860162119,
+    "clean_accuracy_change": 0.024954239587036908,
+    "macro_f1_change": 0.007493909348991967
+  },
+  "class_names": [
+    "Benign",
+    "Bot",
+    "DDOS attack-HOIC",
+    "DDoS attacks-LOIC-HTTP",
+    "DoS attacks-Hulk",
+    "FTP-BruteForce",
+    "Infilteration",
+    "SSH-Bruteforce"
+  ],
+  "num_adversarial_samples_used_for_training": 518386,
+  "num_adversarial_samples_used_for_eval": 1036772
+}
