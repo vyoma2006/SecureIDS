@@ -66,6 +66,48 @@ Adversarial samples generated via FGSM should be saved to `data/adversarial/`, i
 
 This baseline model is considered **frozen** — the Attacker should build and test against this exact version. If the Defender retrains and updates `baseline_model.pt`, this file's "Last updated" date must change and the team should be notified, since it may shift adversarial results.
 
+## Robust Model (Post-Adversarial-Training)
+
+As of the adversarial training phase, three model checkpoints now exist:
+
+| File | Description | Status |
+|---|---|---|
+| `baseline_model.pt` | Original frozen baseline, pre-defense | Reference / frozen |
+| `robust_model_all_eps.pt` | Trained on clean data + adversarial samples across all 4 epsilons | **Primary/recommended model** |
+| `robust_model_high_eps_only.pt` | Trained on clean data + adversarial samples at eps=0.1 and 0.3 only | Ablation comparison, not primary |
+
+**`robust_model_all_eps.pt` is the recommended model for the Visualizer's dashboard and any further Validator checks**, based on its evasion rate being ~5x lower than the alternative (0.41% vs 1.97%) with comparable clean accuracy. Full reasoning in `results/reports/defense_findings.md`.
+
+### Loading the robust model
+
+Same pattern as the baseline model — same architecture (`model_architecture.json` is unchanged, since retraining used the same MLP shape), just a different weights file:
+
+```python
+import json
+import torch
+from src.defender.model_config import IDS_MLP
+
+with open("src/defender/saved_models/model_architecture.json") as f:
+    arch = json.load(f)
+
+model = IDS_MLP(
+    input_dim=arch["input_dim"],
+    num_classes=arch["num_classes"],
+    hidden_sizes=arch["hidden_sizes"],
+)
+model.load_state_dict(torch.load(
+    "src/defender/saved_models/robust_model_all_eps.pt",
+    weights_only=True,  # recommended going forward, see note below
+))
+model.eval()
+```
+
+**Note on `weights_only`**: recent PyTorch versions warn if `torch.load()` is called without `weights_only=True`. Since these are our own trained weights (not third-party downloaded files), this is safe either way, but `weights_only=True` is the safer default going forward and avoids the warning.
+
+### Known caveat
+
+The robust model's evasion rate reflects performance against the Attacker's specific FGSM implementation. See `results/reports/defense_findings.md` for a note on generalization, relevant for the Validator's independent review.
+
 ## Known model behavior worth knowing before you attack it
 
 Benign and Infiltration are the two weakest classes in the baseline (see `results/reports/baseline_findings.md` for full analysis) — the model already confuses them with each other before any adversarial perturbation is applied. Keep this in mind when interpreting evasion results on this pair; a "successful evasion" here is less meaningful than on the other 6 classes, which are cleanly and confidently classified pre-attack.

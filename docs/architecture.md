@@ -1,40 +1,39 @@
 # Architecture — How the 4 Modules Connect
 
 ## Pipeline flow
-data/raw/ --(src/data_processing/load_data.py)--> data/processed/merged_raw.csv
+CICIDS2018 raw CSVs
 |
 v
-(src/data_processing/preprocess.py)
+src/data_processing/ --> data/processed/ (train/val/test splits)
+--> src/defender/saved_models/ (scaler, label_encoder, feature_columns)
 |
 v
-data/processed/X_train.csv, y_train.csv, X_val.csv, y_val.csv, X_test.csv, y_test.csv
-src/defender/saved_models/scaler.pkl, label_encoder.pkl, feature_columns.json
+src/defender/train_baseline.py
 |
 v
-(src/defender/train_baseline.py)
+src/defender/saved_models/baseline_model.pt (FROZEN, used by Attacker)
 |
 v
-src/defender/saved_models/baseline_model.pt + model_architecture.json
+src/attacker/generate_adversarial.py --> data/adversarial/fgsm_<class>_<epsilon>.csv
 |
-+-----------------------------------+-----------------------------------+
+v
+src/defender/adversarial_training.py (ablation study: 2 experiments)
+|
++---------------------------+---------------------------+
 | |
 v v
-(src/attacker/generate_adversarial.py) (src/validator/test_cases.py)
-| independent stress test
-v
-data/adversarial/fgsm_<class_name>_<epsilon>.csv
+robust_model_all_eps.pt robust_model_high_eps_only.pt
+(PRIMARY -- see defense_findings.md) (comparison / ablation)
 |
 v
-(src/defender/adversarial_training.py)
+results/metrics/comparison_all_eps.json, comparison_high_eps_only.json
 |
 v
-src/defender/saved_models/robust_model.pt
+api/ --> frontend/ dashboard_app.py (visualized for the user)
 |
 v
-results/metrics/*.json --> api/ --> frontend/dashboard_app.py
-|
-v
-(src/validator/test_cases.py) re-runs against robust_model.pt too
+src/validator/ (independent sign-off, including generalization check --
+see "known caveat" in docs/model_contract.md)
 
 
 ## Contracts (don't change without telling the team)
@@ -67,3 +66,10 @@ FGSM requires computing a gradient of the loss with respect to the input — Ran
 ## Weekly integration point
 
 Everyone should be able to run `python -m src.defender.train_baseline` and get a fresh `src/defender/saved_models/baseline_model.pt` at any time — that's the contract the other three roles build against. Keep it working. Once the Attacker starts building FGSM code against a specific version, that version is considered **frozen** (see `docs/model_contract.md`) until the whole team agrees to update it.
+
+## Key design decisions
+
+- **MLP over Random Forest/XGBoost**: chosen specifically because FGSM requires a differentiable model. See `results/reports/baseline_findings.md` for why.
+- **8 classes, not all 15**: very low-sample classes (e.g. SQL Injection at 87 rows) were excluded — too few samples to train or evaluate meaningfully.
+- **Downsampling Benign**: originally 13.4M rows vs ~2.8M across all attack classes combined; capped to keep the dataset both memory-manageable and reasonably balanced.
+- **Ablation study on adversarial training**: rather than assuming which epsilon values to train on, two experiments were run and compared (all epsilons vs. high-epsilon-only), evaluated identically against the full adversarial set. Full reasoning and results in `results/reports/defense_findings.md`.
