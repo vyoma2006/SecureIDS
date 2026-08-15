@@ -1,0 +1,198 @@
+[
+  {
+    "class": "Bot",
+    "epsilon": 0.01,
+    "evasion_rate": 0.00025623705005273223,
+    "confidence_drop": 0.0003384853480383754,
+    "n_samples": 42929
+  },
+  {
+    "class": "Bot",
+    "epsilon": 0.05,
+    "evasion_rate": 0.5001513957977295,
+    "confidence_drop": 0.4995807409286499,
+    "n_samples": 42929
+  },
+  {
+    "class": "Bot",
+    "epsilon": 0.1,
+    "evasion_rate": 0.500221312046051,
+    "confidence_drop": 0.4999908208847046,
+    "n_samples": 42929
+  },
+  {
+    "class": "Bot",
+    "epsilon": 0.3,
+    "evasion_rate": 0.5002678632736206,
+    "confidence_drop": 0.5000472068786621,
+    "n_samples": 42929
+  },
+  {
+    "class": "DDOS attack-HOIC",
+    "epsilon": 0.01,
+    "evasion_rate": 2.2211856048670597e-05,
+    "confidence_drop": 2.1113964976393618e-05,
+    "n_samples": 45021
+  },
+  {
+    "class": "DDOS attack-HOIC",
+    "epsilon": 0.05,
+    "evasion_rate": 0.757513165473938,
+    "confidence_drop": 0.7575093507766724,
+    "n_samples": 45021
+  },
+  {
+    "class": "DDOS attack-HOIC",
+    "epsilon": 0.1,
+    "evasion_rate": 0.757513165473938,
+    "confidence_drop": 0.757509171962738,
+    "n_samples": 45021
+  },
+  {
+    "class": "DDOS attack-HOIC",
+    "epsilon": 0.3,
+    "evasion_rate": 1.0,
+    "confidence_drop": 0.9983340501785278,
+    "n_samples": 45021
+  },
+  {
+    "class": "DDoS attacks-LOIC-HTTP",
+    "epsilon": 0.01,
+    "evasion_rate": 0.006724218372255564,
+    "confidence_drop": 0.005709962919354439,
+    "n_samples": 45061
+  },
+  {
+    "class": "DDoS attacks-LOIC-HTTP",
+    "epsilon": 0.05,
+    "evasion_rate": 0.034553162753582,
+    "confidence_drop": 0.04963678494095802,
+    "n_samples": 45061
+  },
+  {
+    "class": "DDoS attacks-LOIC-HTTP",
+    "epsilon": 0.1,
+    "evasion_rate": 0.09773418307304382,
+    "confidence_drop": 0.11533331125974655,
+    "n_samples": 45061
+  },
+  {
+    "class": "DDoS attacks-LOIC-HTTP",
+    "epsilon": 0.3,
+    "evasion_rate": 0.17791438102722168,
+    "confidence_drop": 0.17581364512443542,
+    "n_samples": 45061
+  },
+  {
+    "class": "DoS attacks-Hulk",
+    "epsilon": 0.01,
+    "evasion_rate": 0.0,
+    "confidence_drop": 5.524817936475301e-09,
+    "n_samples": 44945
+  },
+  {
+    "class": "DoS attacks-Hulk",
+    "epsilon": 0.05,
+    "evasion_rate": 4.449883272172883e-05,
+    "confidence_drop": 5.94625853409525e-05,
+    "n_samples": 44945
+  },
+  {
+    "class": "DoS attacks-Hulk",
+    "epsilon": 0.1,
+    "evasion_rate": 0.00031149183632805943,
+    "confidence_drop": 0.0003191644500475377,
+    "n_samples": 44945
+  },
+  {
+    "class": "DoS attacks-Hulk",
+    "epsilon": 0.3,
+    "evasion_rate": 0.9446434378623962,
+    "confidence_drop": 0.9444991946220398,
+    "n_samples": 44945
+  },
+  {
+    "class": "FTP-BruteForce",
+    "epsilon": 0.01,
+    "evasion_rate": 0.0,
+    "confidence_drop": 3.406505493330769e-05,
+    "n_samples": 29003
+  },
+  {
+    "class": "FTP-BruteForce",
+    "epsilon": 0.05,
+    "evasion_rate": 0.03716856986284256,
+    "confidence_drop": 0.04806547984480858,
+    "n_samples": 29003
+  },
+  {
+    "class": "FTP-BruteForce",
+    "epsilon": 0.1,
+    "evasion_rate": 0.11819466948509216,
+    "confidence_drop": 0.1201515719294548,
+    "n_samples": 29003
+  },
+  {
+    "class": "FTP-BruteForce",
+    "epsilon": 0.3,
+    "evasion_rate": 1.0,
+    "confidence_drop": 0.9998691082000732,
+    "n_samples": 29003
+  },
+  {
+    "class": "Infilteration",
+    "epsilon": 0.01,
+    "evasion_rate": 0.17388778924942017,
+    "confidence_drop": 0.014037437736988068,
+    "n_samples": 24096
+  },
+  {
+    "class": "Infilteration",
+    "epsilon": 0.05,
+    "evasion_rate": 0.2079598307609558,
+    "confidence_drop": 0.055406831204891205,
+    "n_samples": 24096
+  },
+  {
+    "class": "Infilteration",
+    "epsilon": 0.1,
+    "evasion_rate": 0.2280876487493515,
+    "confidence_drop": 0.1007671058177948,
+    "n_samples": 24096
+  },
+  {
+    "class": "Infilteration",
+    "epsilon": 0.3,
+    "evasion_rate": 0.5444056987762451,
+    "confidence_drop": 0.2731360197067261,
+    "n_samples": 24096
+  },
+  {
+    "class": "SSH-Bruteforce",
+    "epsilon": 0.01,
+    "evasion_rate": 0.00014215651026461273,
+    "confidence_drop": 1.636950037209317e-05,
+    "n_samples": 28138
+  },
+  {
+    "class": "SSH-Bruteforce",
+    "epsilon": 0.05,
+    "evasion_rate": 0.00014215651026461273,
+    "confidence_drop": 2.1936224584351294e-05,
+    "n_samples": 28138
+  },
+  {
+    "class": "SSH-Bruteforce",
+    "epsilon": 0.1,
+    "evasion_rate": 0.00014215651026461273,
+    "confidence_drop": 2.194280932599213e-05,
+    "n_samples": 28138
+  },
+  {
+    "class": "SSH-Bruteforce",
+    "epsilon": 0.3,
+    "evasion_rate": 0.00014215651026461273,
+    "confidence_drop": 2.194446096837055e-05,
+    "n_samples": 28138
+  }
+]

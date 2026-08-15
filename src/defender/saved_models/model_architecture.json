@@ -1,0 +1,19 @@
+{
+  "input_dim": 78,
+  "num_classes": 8,
+  "hidden_sizes": [
+    128,
+    64,
+    32
+  ],
+  "class_names": [
+    "Benign",
+    "Bot",
+    "DDOS attack-HOIC",
+    "DDoS attacks-LOIC-HTTP",
+    "DoS attacks-Hulk",
+    "FTP-BruteForce",
+    "Infilteration",
+    "SSH-Bruteforce"
+  ]
+}

@@ -1,74 +1,75 @@
 # Architecture — How the 4 Modules Connect
 
 ## Pipeline flow
+CICIDS2018 raw CSVs
+|
+v
+src/data_processing/ --> data/processed/ (train/val/test splits)
+--> src/defender/saved_models/ (scaler, label_encoder, feature_columns)
+|
+v
+src/defender/train_baseline.py
+|
+v
+src/defender/saved_models/baseline_model.pt (FROZEN, used by Attacker)
+|
+v
+src/attacker/generate_adversarial.py --> data/adversarial/fgsm_<class>_<epsilon>.csv
+|
+v
+src/defender/adversarial_training.py (ablation study: 2 experiments)
+|
++---------------------------+---------------------------+
+| |
+v v
+robust_model_all_eps.pt robust_model_high_eps_only.pt
+(PRIMARY -- see defense_findings.md) (comparison / ablation)
+|
+v
+results/metrics/comparison_all_eps.json, comparison_high_eps_only.json
+|
+v
+api/ --> frontend/ dashboard_app.py (visualized for the user)
+|
+v
+src/validator/ (independent sign-off, including generalization check --
+see "known caveat" in docs/model_contract.md)
 
-```
-data/raw/  --(defense/preprocessing.py)-->  data/processed/train.csv, test.csv
-                                                    |
-                                                    v
-                                    (defense/train_baseline.py)
-                                                    |
-                                                    v
-                                    models/baseline/ids_baseline.pkl
-                                                    |
-                            +-----------------------+-----------------------+
-                            |                                               |
-                            v                                               v
-        (attack/generate_adversarial_samples.py)              (validation/test_cases.py)
-                            |                                     independent stress test
-                            v
-    data/processed/adversarial/fgsm_samples.csv
-                            |
-                            v
-        (defense/adversarial_training.py)
-                            |
-                            v
-        models/robust/ids_robust.pkl
-                            |
-                            v
-        (visualization/metrics.py) --> results/metrics/*.json --> (visualization/dashboard/app.py)
-                            |
-                            v
-                (validation/test_cases.py) re-runs against models/robust/ too
-```
 
 ## Contracts (don't change without telling the team)
 
-**Processed data schema** (`data/processed/train.csv`, `test.csv`):
-- Same feature columns throughout the whole pipeline.
-- Label column name comes from `config/config.yaml -> data.label_column`.
-- Classes are exactly: `Normal`, `DDoS`, `PortScan`, `BruteForce` (see `config/config.yaml -> data.classes`).
+**Processed data schema** (`data/processed/X_train.csv` + `y_train.csv`, same for val/test):
+- 78 feature columns, exact order defined in `src/defender/saved_models/feature_columns.json` — never reorder.
+- Features are already scaled (StandardScaler, fit on train only). Do not re-scale.
+- Labels are integers, encoded via `src/defender/saved_models/label_encoder.pkl`.
+- 8 classes: `Benign, Bot, DDOS attack-HOIC, DDoS attacks-LOIC-HTTP, DoS attacks-Hulk, FTP-BruteForce, Infilteration, SSH-Bruteforce`.
 
-**Adversarial samples schema** (`data/processed/adversarial/fgsm_samples.csv`):
-- Identical columns to `test.csv`.
-- The `Label` column holds the *ground truth* label, not what the model predicted after perturbation — the Defender needs the true label to retrain correctly.
+**Adversarial samples schema** (`data/adversarial/*.csv`):
+- Same 78 scaled columns as `X_train.csv`, same column order.
+- Include the *ground truth* label alongside each sample, not the model's (possibly-fooled) prediction — the Defender needs the true label to retrain correctly.
 
-**Model artifacts** (`models/baseline/`, `models/robust/`):
-- Saved with `joblib`, loaded via `src/defense/model_utils.load_model()`.
-- Anyone loading a model uses that shared helper — don't reimplement loading logic in your own module.
+**Model artifacts** (`src/defender/saved_models/`):
+- `baseline_model.pt` — PyTorch `state_dict`, frozen once the Attacker starts building against it.
+- `model_architecture.json` — required to reconstruct the exact model shape (input_dim, hidden_sizes, num_classes) before loading the weights above.
+- Full loading instructions: `docs/model_contract.md`.
 
 **Metrics output** (`results/metrics/*.json`):
-- `baseline_eval.json` — from `defense/train_baseline.py`
-- `comparison.json` — from `defense/adversarial_training.py` (before/after numbers)
-- `validation_report.json` — from `validation/test_cases.py`
-- The dashboard (`visualization/dashboard/app.py`) reads all three; it should never recompute metrics itself, only display what's already been written.
+- `baseline_metrics.json` — from `src/defender/train_baseline.py` (accuracy, per-class precision/recall/F1, confusion matrix)
+- `comparison.json` — from `src/defender/adversarial_training.py` (before/after numbers) — not yet created
+- `validation_report.json` — from `src/validator/` — not yet created
+- The dashboard (`frontend/dashboard_app.py`) reads these via the API; it should never recompute metrics itself, only display what's already been written.
 
-## FGSM on tree-based models — heads-up for the Attacker
+## Why MLP, not Random Forest/XGBoost
 
-RandomForest/XGBoost aren't differentiable, so literal FGSM (which needs a
-gradient) doesn't apply directly. Pick one and document it:
-1. Train a differentiable surrogate model (small PyTorch MLP) that mimics
-   the baseline, attack the surrogate with real FGSM, and test how well the
-   resulting samples transfer to fooling the actual RF/XGBoost baseline.
-2. Use a gradient-free adversarial method suited to tree ensembles (e.g. via
-   the Adversarial Robustness Toolbox) and call it out in the report as "FGSM
-   adapted for tabular/tree-based models" rather than literal FGSM.
-
-Either is fine for this project scope — just be explicit in the final report
-about which approach was used and why, since a validator or reviewer will ask.
+FGSM requires computing a gradient of the loss with respect to the input — Random Forest and XGBoost aren't differentiable, so literal FGSM can't be applied to them without a surrogate model. To avoid that extra complexity, the baseline IDS is a PyTorch MLP instead: fully differentiable, so **FGSM applies directly to the real model, no surrogate needed.** See `results/reports/baseline_findings.md` for why this choice was made and how the baseline performed.
 
 ## Weekly integration point
 
-Everyone should be able to run `python -m src.defense.train_baseline` and get
-a fresh `models/baseline/ids_baseline.pkl` at any time — that's the contract
-the other three roles build against. Keep it working.
+Everyone should be able to run `python -m src.defender.train_baseline` and get a fresh `src/defender/saved_models/baseline_model.pt` at any time — that's the contract the other three roles build against. Keep it working. Once the Attacker starts building FGSM code against a specific version, that version is considered **frozen** (see `docs/model_contract.md`) until the whole team agrees to update it.
+
+## Key design decisions
+
+- **MLP over Random Forest/XGBoost**: chosen specifically because FGSM requires a differentiable model. See `results/reports/baseline_findings.md` for why.
+- **8 classes, not all 15**: very low-sample classes (e.g. SQL Injection at 87 rows) were excluded — too few samples to train or evaluate meaningfully.
+- **Downsampling Benign**: originally 13.4M rows vs ~2.8M across all attack classes combined; capped to keep the dataset both memory-manageable and reasonably balanced.
+- **Ablation study on adversarial training**: rather than assuming which epsilon values to train on, two experiments were run and compared (all epsilons vs. high-epsilon-only), evaluated identically against the full adversarial set. Full reasoning and results in `results/reports/defense_findings.md`.
