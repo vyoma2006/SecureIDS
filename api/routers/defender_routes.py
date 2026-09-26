@@ -6,7 +6,12 @@ via api/services/defender_service.py.
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Query
 
-from api.schemas.prediction_schema import PredictResponse, RetrainResponse, TrainResponse
+from api.schemas.prediction_schema import (
+    FeatureInfoResponse,
+    PredictResponse,
+    RetrainResponse,
+    TrainResponse,
+)
 from api.services import defender_service
 from api.services.defender_service import ArtifactsNotFoundError
 
@@ -31,6 +36,22 @@ def train_model():
         raise HTTPException(status_code=500, detail=f"Training failed: {e}")
 
 
+@router.get("/features", response_model=FeatureInfoResponse)
+def feature_info():
+    """
+    Everything the live-prediction demo needs to build a CSV template or a
+    manual-entry form: the 78 required columns (in model order), the class
+    names, and each feature's training-set mean in raw units. Also a cheap
+    way for the dashboard to check the model is loaded.
+    """
+    try:
+        return defender_service.get_feature_info()
+    except ArtifactsNotFoundError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Could not load model info: {e}")
+
+
 @router.post("/predict", response_model=PredictResponse)
 async def predict(file: UploadFile = File(...)):
     """
@@ -42,7 +63,10 @@ async def predict(file: UploadFile = File(...)):
     automatically server-side; do not pre-scale.
 
     Returns one prediction per row: predicted class, confidence, and the
-    full probability distribution across all 8 classes.
+    full probability distribution across all 8 classes. Rows with missing,
+    infinite or non-numeric values are not classified; they come back in
+    `skipped_rows` with the reason. If the CSV has a 'Label' column it is
+    echoed back per row as `actual_label`.
     """
     if not file.filename or not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="Please upload a .csv file.")

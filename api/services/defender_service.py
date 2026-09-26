@@ -19,6 +19,7 @@ import pickle
 from pathlib import Path
 from typing import Any, Optional
 
+import numpy as np
 import pandas as pd
 import torch
 
@@ -99,15 +100,50 @@ def load_inference_artifacts(force_reload: bool = False) -> dict[str, Any]:
     return _artifact_cache
 
 
+MAX_ROWS = 10_000  # keeps the live demo responsive; the UI renders one row per prediction
+
+
+def _normalise_columns(df: pd.DataFrame, feature_columns: list[str]) -> pd.DataFrame:
+    """
+    Make uploaded headers match feature_columns.json exactly.
+
+    Real CICIDS exports often have stray spaces (' Flow Duration') or different
+    capitalisation, which used to make every column look "missing". Match on
+    stripped, lower-cased names and rename to the canonical spelling. If the
+    same feature appears twice, the first occurrence wins.
+    """
+    canonical = {c.strip().lower(): c for c in feature_columns}
+    rename = {}
+    for col in df.columns:
+        key = str(col).strip().lower()
+        if key in canonical and col != canonical[key]:
+            rename[col] = canonical[key]
+    if rename:
+        df = df.rename(columns=rename)
+    return df.loc[:, ~df.columns.duplicated()]
+
+
+def _find_label_column(df: pd.DataFrame) -> Optional[str]:
+    for col in df.columns:
+        if str(col).strip().lower() == "label":
+            return col
+    return None
+
+
 def predict(csv_bytes: bytes) -> dict[str, Any]:
     """
     Classify uploaded traffic data.
 
     csv_bytes: raw bytes of an uploaded CSV containing RAW (unscaled) feature
     values, one row per traffic sample. The 78 feature_columns.json columns
-    must be present (extra columns, e.g. a label column, are ignored); this
-    function scales the data itself using the saved scaler.pkl before
-    running it through the model, so callers should never pre-scale.
+    must be present (extra columns are ignored; a 'Label' column, if present,
+    is echoed back as `actual_label` so the UI can compare); this function
+    scales the data itself using the saved scaler.pkl before running it
+    through the model, so callers should never pre-scale.
+
+    Rows with missing / infinite / non-numeric values are NOT classified
+    (training dropped such rows too, and NaN input would otherwise silently
+    come out as "Benign"). They are reported in `skipped_rows` instead.
 
     Returns a dict matching api/schemas/prediction_schema.PredictResponse.
     """
@@ -122,6 +158,13 @@ def predict(csv_bytes: bytes) -> dict[str, Any]:
 
     if df.empty:
         raise ValueError("Uploaded CSV has no rows.")
+    if len(df) > MAX_ROWS:
+        raise ValueError(
+            f"Uploaded CSV has {len(df):,} rows; the live demo accepts at most {MAX_ROWS:,}. "
+            f"Upload a smaller sample."
+        )
+
+    df = _normalise_columns(df, feature_columns)
 
     missing = [c for c in feature_columns if c not in df.columns]
     if missing:
@@ -131,10 +174,34 @@ def predict(csv_bytes: bytes) -> dict[str, Any]:
             f"src/defender/saved_models/feature_columns.json."
         )
 
-    X_raw = df[feature_columns].values.astype("float32")
+    label_col = _find_label_column(df)
+    actual_labels = df[label_col].astype(str).str.strip().tolist() if label_col is not None else None
+
+    # Coerce to numbers ("Infinity" parses to inf; junk text becomes NaN),
+    # then find rows the model must not see.
+    features = df[feature_columns].apply(pd.to_numeric, errors="coerce")
+    X_raw = features.to_numpy(dtype="float64")
+    X_raw = np.where(np.abs(X_raw) > np.finfo("float32").max, np.inf, X_raw)  # would overflow float32
+    finite = np.isfinite(X_raw)
+    row_ok = finite.all(axis=1)
+
+    skipped = []
+    for i in np.flatnonzero(~row_ok):
+        bad_cols = [feature_columns[j] for j in np.flatnonzero(~finite[i])]
+        shown = ", ".join(bad_cols[:3]) + (f" (+{len(bad_cols) - 3} more)" if len(bad_cols) > 3 else "")
+        skipped.append({"row_index": int(i), "reason": f"Missing, infinite or non-numeric value in: {shown}"})
+
+    if not row_ok.any():
+        raise ValueError(
+            f"None of the {len(df)} rows could be classified. First problem: {skipped[0]['reason']}. "
+            f"Rows must be clean numeric values (no blanks, NaN or Infinity)."
+        )
+
+    good_idx = np.flatnonzero(row_ok)
+    X_good = X_raw[good_idx].astype("float32")
 
     try:
-        X_scaled = artifacts["scaler"].transform(X_raw)
+        X_scaled = artifacts["scaler"].transform(X_good)
     except Exception as e:
         raise ValueError(f"Feature scaling failed — check that columns contain numeric data: {e}") from e
 
@@ -145,21 +212,41 @@ def predict(csv_bytes: bytes) -> dict[str, Any]:
         probs = torch.softmax(logits, dim=1).numpy()
 
     predictions = []
-    for i, row_probs in enumerate(probs):
+    for row_probs, original_index in zip(probs, good_idx):
         pred_idx = int(row_probs.argmax())
         predictions.append({
-            "row_index": i,
+            "row_index": int(original_index),
             "predicted_class": class_names[pred_idx],
             "confidence": float(row_probs[pred_idx]),
             "probabilities": {
                 class_names[j]: float(row_probs[j]) for j in range(len(class_names))
             },
+            "actual_label": actual_labels[original_index] if actual_labels is not None else None,
         })
 
     return {
         "model_used": artifacts["model_used"],
-        "n_rows": len(predictions),
+        "n_rows": int(len(df)),
+        "n_classified": len(predictions),
         "predictions": predictions,
+        "skipped_rows": skipped,
+    }
+
+
+def get_feature_info() -> dict[str, Any]:
+    """
+    What the live demo needs to build a template / manual-entry form:
+    required columns in model order, class names, and each feature's
+    training-set mean in RAW units (from the saved scaler).
+    """
+    artifacts = load_inference_artifacts()
+    feature_columns = artifacts["feature_columns"]
+    means = artifacts["scaler"].mean_
+    return {
+        "model_used": artifacts["model_used"],
+        "class_names": artifacts["class_names"],
+        "feature_columns": feature_columns,
+        "feature_means": {c: float(m) for c, m in zip(feature_columns, means)},
     }
 
 

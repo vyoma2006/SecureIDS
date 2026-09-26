@@ -7,12 +7,33 @@ Run locally with:
 Interactive docs available at http://127.0.0.1:8000/docs
 """
 
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import defender_routes, attacker_routes, metrics_routes, validator_routes
+from api.services import defender_service
+
+logger = logging.getLogger("secureids")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Load model / scaler / encoder once at startup so the first live
+    # prediction doesn't pay the loading cost. If artifacts are missing we
+    # still start; /defender/predict will report a clear 503 instead.
+    try:
+        info = defender_service.load_inference_artifacts()
+        logger.warning("Inference model ready: %s", info["model_used"])
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Inference model NOT loaded at startup: %s", e)
+    yield
+
 
 app = FastAPI(
+    lifespan=lifespan,
     title="SecureIDS API",
     description="Network Intrusion Detection System with Adversarial Attack Simulation and Defense",
     version="0.1.0",
