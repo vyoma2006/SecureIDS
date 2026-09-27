@@ -89,7 +89,7 @@ def sidebar() -> str:
         st.sidebar.caption(err)
     st.sidebar.caption(f"API: {api_client.API_BASE_URL}")
 
-    if st.sidebar.button("\U0001F504 Refresh data", width="stretch"):
+    if st.sidebar.button("🔄 Refresh data"):
         st.cache_data.clear()
         st.rerun()
 
